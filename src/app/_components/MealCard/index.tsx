@@ -3,21 +3,31 @@ import { Meal } from "@prisma/client";
 import Image from "next/image";
 import { useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
-import { BiTrash } from "react-icons/bi";
+import { BiEdit, BiTrash } from "react-icons/bi";
 
 export interface MealCard {
   meal: Meal;
   onDelete?: (meal: Meal) => Promise<void>;
+  onEdit?: (meal: Meal) => void;
+  onSelect?: (meal: Meal) => void;
 }
 
-const MealCard: React.FC<MealCard> = ({ meal, onDelete }) => {
+const MealCard: React.FC<MealCard> = ({ meal, onDelete, onEdit, onSelect }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   return (
-    <div className="relative rounded-xl bg-white shadow-xl">
+    <div
+      className="relative rounded-xl bg-white shadow-xl"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect?.(meal);
+      }}
+      role={onSelect ? "button" : undefined}
+    >
       {onDelete && (
-        <div className="absolute right-2 top-2">
+        <div className="absolute right-2 top-2 z-40">
           <button
-            onClick={async () => {
+            onClick={async (e) => {
+              e.stopPropagation();
               setIsDeleting(true);
               try {
                 await onDelete?.(meal);
@@ -33,6 +43,19 @@ const MealCard: React.FC<MealCard> = ({ meal, onDelete }) => {
             ) : (
               <BiTrash className="h-4 w-4 bg-red-500" />
             )}
+          </button>
+        </div>
+      )}
+      {onEdit && (
+        <div className="absolute right-10 top-2 z-40">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(meal);
+            }}
+            className="rounded-full bg-blue-500 p-1 text-white"
+          >
+            <BiEdit className="h-4 w-4" />
           </button>
         </div>
       )}

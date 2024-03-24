@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { AreaDto } from "@/services/mealservice/dto/listAreasDto";
 import { CategoryDto } from "@/services/mealservice/dto/listCategoriesDto";
 import { IngredientDto } from "@/services/mealservice/dto/listIngredientDto";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import EditablePickList from "../SearchSelect";
@@ -58,7 +59,7 @@ const MealSearch: React.FC<MealSearchProps> = ({
     (searchType === "area" && !area);
 
   return (
-    <div className="flex w-full flex-wrap justify-center gap-2">
+    <div className="flex w-full flex-wrap items-center justify-center gap-2">
       <select
         className="w-fit rounded-lg p-2 ring-1 ring-slate-400"
         value={searchType}
@@ -114,6 +115,11 @@ const MealSearch: React.FC<MealSearchProps> = ({
       >
         Search
       </button>
+      <Link href="/random">
+        <button className="rounded-xl bg-orange-500 p-2 text-white">
+          Get Random Recipe
+        </button>
+      </Link>
     </div>
   );
 };

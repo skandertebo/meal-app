@@ -2,7 +2,6 @@
 
 import { api } from "@/trpc/react";
 import { Meal } from "@prisma/client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MealCard from "../MealCard";
 
@@ -16,15 +15,20 @@ const MyMealsContainer: React.FC<MyMealsContainerProps> = ({ meals }) => {
   return (
     <>
       {meals.map((meal, idx) => (
-        <Link href={`/mymeals/${meal.id}`} key={idx}>
-          <MealCard
-            meal={meal}
-            onDelete={async (m) => {
-              await deleteMeal.mutateAsync(m.id);
-              router.refresh();
-            }}
-          />
-        </Link>
+        <MealCard
+          key={idx}
+          meal={meal}
+          onDelete={async (m) => {
+            await deleteMeal.mutateAsync(m.id);
+            router.refresh();
+          }}
+          onEdit={() => {
+            router.push(`/create-meal/${meal.id}`);
+          }}
+          onSelect={() => {
+            router.push(`/mymeals/${meal.id}`);
+          }}
+        />
       ))}
     </>
   );

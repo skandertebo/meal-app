@@ -1,8 +1,13 @@
 import MealPage from "@/app/_components/MealPage";
+import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: { id: string } }) {
+  const session = await getServerAuthSession();
+  if (!session?.user) {
+    redirect("/api/auth/signin");
+  }
   try {
     const myMeal = await api.meal.getMyMealById(Number(params.id));
     if (!myMeal) {

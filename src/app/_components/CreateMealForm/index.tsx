@@ -4,6 +4,7 @@ import { AreaDto } from "@/services/mealservice/dto/listAreasDto";
 import { CategoryDto } from "@/services/mealservice/dto/listCategoriesDto";
 import { IngredientDto } from "@/services/mealservice/dto/listIngredientDto";
 import { api } from "@/trpc/react";
+import { Meal } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,19 +17,24 @@ export interface CreateMealFormProps {
   categories: CategoryDto[];
   areas: AreaDto[];
   ingredients: IngredientDto[];
+  initialMeal?: Meal & {
+    ingredients: { name: string; amount: string; amountUnit: string }[];
+  };
 }
 
 const CreateMealForm: React.FC<CreateMealFormProps> = ({
   categories,
   areas,
   ingredients,
+  initialMeal,
 }) => {
-  const mealMutation = api.meal.create.useMutation();
+  const mealCreateMutation = api.meal.create.useMutation();
+  const mealUpdateMutation = api.meal.updateMeal.useMutation();
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
   // we can also add logic to upload a meal image as thumb ( in a service like s3 or something similar )
   // but for simplicity we will just use a placeholder image
-  const onCreateMeal = async ({
+  const onCreateOrUpdateMeal = async ({
     name,
     category,
     area,
@@ -47,7 +53,19 @@ const CreateMealForm: React.FC<CreateMealFormProps> = ({
   }) => {
     try {
       setIsCreating(true);
-      await mealMutation.mutateAsync({
+      if (initialMeal) {
+        await mealUpdateMutation.mutateAsync({
+          id: initialMeal.id,
+          name,
+          category,
+          area,
+          instructions,
+          ingredients,
+        });
+        window.location.href = "/mymeals";
+        return;
+      }
+      await mealCreateMutation.mutateAsync({
         name,
         category,
         area,
@@ -80,17 +98,25 @@ const CreateMealForm: React.FC<CreateMealFormProps> = ({
       setIsCreating(false);
     }
   };
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [area, setArea] = useState("");
-  const [instructions, setInstructions] = useState("");
+  const [name, setName] = useState(initialMeal?.name ?? "");
+  const [category, setCategory] = useState(initialMeal?.category ?? "");
+  const [area, setArea] = useState(initialMeal?.area ?? "");
+  const [instructions, setInstructions] = useState(
+    initialMeal?.instructions ?? "",
+  );
   const [myIngredients, setMyIngredients] = useState<
     {
       name: string;
       amount: string;
       unit: string;
     }[]
-  >([]);
+  >(
+    initialMeal?.ingredients.map((ingredient) => ({
+      name: ingredient.name,
+      amount: ingredient.amount,
+      unit: ingredient.amountUnit,
+    })) ?? [],
+  );
 
   const inputClassName =
     "p-2 border border-gray-300 rounded-md min-w-[250px] w-fit";
@@ -99,7 +125,7 @@ const CreateMealForm: React.FC<CreateMealFormProps> = ({
     <form
       onSubmit={async (e) => {
         e.preventDefault();
-        await onCreateMeal({
+        await onCreateOrUpdateMeal({
           name,
           category,
           area,
@@ -191,6 +217,8 @@ const CreateMealForm: React.FC<CreateMealFormProps> = ({
         >
           {isCreating ? (
             <AiOutlineLoading className="mx-auto animate-spin" />
+          ) : initialMeal ? (
+            "Update Meal"
           ) : (
             "Create Meal"
           )}

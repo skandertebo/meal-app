@@ -160,4 +160,68 @@ export const mealRouter = createTRPCRouter({
         },
       });
     }),
+
+  getRandomMeal: publicProcedure.query(() => {
+    return MealService.GetRandomMeal();
+  }),
+
+  updateMeal: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1),
+        ingredients: z.array(
+          z.object({
+            name: z.string(),
+            amount: z.string(),
+            unit: z.string(),
+          }),
+        ),
+        instructions: z.string(),
+        category: z.string(),
+        area: z.string(),
+        thumb: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is defined
+      if (!ctx.session.user || !ctx.session.user.id) {
+        throw new Error("User is not defined");
+      }
+
+      // Check if meal exists
+      const meal = await ctx.db.meal.findUnique({
+        where: { id: input.id },
+      });
+      if (!meal) {
+        throw new Error("Meal not found");
+      }
+
+      // Check if user is the creator
+      if (meal.createdById !== ctx.session.user.id) {
+        throw new Error("You are not the creator of this meal");
+      }
+
+      // Map ingredients with required properties
+      const ingredients = input.ingredients.map((ingredient) => ({
+        name: ingredient.name,
+        amount: ingredient.amount,
+        amountUnit: ingredient.unit,
+      }));
+
+      return ctx.db.meal.update({
+        where: { id: input.id },
+        data: {
+          name: input.name,
+          instructions: input.instructions,
+          category: input.category,
+          area: input.area,
+          thumb: input.thumb ?? "",
+          ingredients: {
+            deleteMany: {},
+            create: ingredients,
+          },
+        },
+      });
+    }),
 });
