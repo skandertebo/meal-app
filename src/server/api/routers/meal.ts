@@ -20,7 +20,6 @@ export const mealRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1),
-        description: z.string(),
         ingredients: z.array(
           z.object({
             name: z.string(),
@@ -31,7 +30,6 @@ export const mealRouter = createTRPCRouter({
         instructions: z.string(),
         category: z.string(),
         area: z.string(),
-        tags: z.array(z.string()),
         thumb: z.string().optional(),
       }),
     )
@@ -45,8 +43,7 @@ export const mealRouter = createTRPCRouter({
       const ingredients = input.ingredients.map((ingredient) => ({
         name: ingredient.name,
         amount: ingredient.amount,
-        unit: ingredient.unit,
-        amountUnit: "someValue", // Replace 'someValue' with the actual value
+        amountUnit: ingredient.unit,
       }));
 
       return ctx.db.meal.create({
@@ -118,4 +115,30 @@ export const mealRouter = createTRPCRouter({
       },
     });
   }),
+
+  deleteMeal: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is defined
+      if (!ctx.session.user || !ctx.session.user.id) {
+        throw new Error("User is not defined");
+      }
+
+      // Check if meal exists
+      const meal = await ctx.db.meal.findUnique({
+        where: { id: input },
+      });
+      if (!meal) {
+        throw new Error("Meal not found");
+      }
+
+      // Check if user is the creator
+      if (meal.createdById !== ctx.session.user.id) {
+        throw new Error("You are not the creator of this meal");
+      }
+
+      return ctx.db.meal.delete({
+        where: { id: input },
+      });
+    }),
 });

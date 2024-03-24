@@ -36,6 +36,11 @@ const PublicMealShowcase: React.FC<PublicMealShowcaseProps> = async ({
             </div>
           </Link>
         ))}
+        {meals.length === 0 && (
+          <div className="w-full text-center text-2xl font-semibold">
+            No meals found
+          </div>
+        )}
       </div>
     </div>
   );

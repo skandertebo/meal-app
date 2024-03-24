@@ -58,7 +58,7 @@ const MealSearch: React.FC<MealSearchProps> = ({
     (searchType === "area" && !area);
 
   return (
-    <div className="flex w-full justify-center gap-2">
+    <div className="flex w-full flex-wrap justify-center gap-2">
       <select
         className="w-fit rounded-lg p-2 ring-1 ring-slate-400"
         value={searchType}

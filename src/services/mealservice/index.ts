@@ -26,7 +26,7 @@ export default class MealService {
     const res = await axios.get<SearchMealsDto>(
       ENDPOINTS.MEALS.GET_MEAL_BY_ID(id),
     );
-    if (!res.data.meals.length) return null;
+    if (!res.data.meals?.length) return null;
     return mealAdapter(res.data.meals[0]!);
   }
 
