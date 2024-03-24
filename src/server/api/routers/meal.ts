@@ -141,4 +141,23 @@ export const mealRouter = createTRPCRouter({
         where: { id: input },
       });
     }),
+
+  getMyMealById: protectedProcedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      // Check if user is defined
+      if (!ctx.session.user || !ctx.session.user.id) {
+        throw new Error("User is not defined");
+      }
+
+      return ctx.db.meal.findUnique({
+        where: {
+          id: input,
+          createdBy: { id: ctx.session.user.id },
+        },
+        include: {
+          ingredients: true,
+        },
+      });
+    }),
 });
