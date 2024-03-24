@@ -19,7 +19,7 @@ const MyMealsContainer: React.FC<MyMealsContainerProps> = ({ meals }) => {
           key={meal.id}
           meal={meal}
           onDelete={async (m) => {
-            await deleteMeal.mutateAsync(m.id as number);
+            await deleteMeal.mutateAsync(m.id);
             router.refresh();
           }}
         />
