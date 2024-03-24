@@ -14,16 +14,29 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
+model Meal {
     id        Int      @id @default(autoincrement())
     name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
+    thumb String
+    instructions String
+    category String
+    area String
+    ingredients Ingredient[]
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
 
     @@index([name])
+}
+
+model Ingredient {
+    id        Int      @id @default(autoincrement())
+    name      String
+    amount    String
+    amountUnit String
+    meal      Meal     @relation(fields: [mealId], references: [id])
+    mealId    Int
 }
 
 // Necessary for Next auth
@@ -61,7 +74,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
+    posts         Meal[]
 }
 
 model VerificationToken {
